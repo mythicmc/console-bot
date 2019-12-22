@@ -11,17 +11,19 @@ const client = new Eris.Client(config.token, { restMode: true, autoreconnect: tr
 client.connect()
 
 class MessageBuffer {
-  buffer = []
+  buffer = ''
 
   get length() { return this.buffer.length }
 
   push(message) {
-    message.split('\n').forEach(line => this.buffer.push(line))
+    this.buffer += message + '\n'
     return true
   }
 
   flush(length) {
-    return this.buffer.splice(0, length)
+    const r = this.buffer.substr(0, length)
+    this.buffer = this.buffer.substr(length - 1)
+    return r
   }
 }
 
@@ -82,9 +84,15 @@ client.on('ready', async () => {
       } else buffer.push(data)
     })
     const interval = setInterval(() => {
-      const flush = buffer.flush(2000).join('\n')
-      if (flush.length > 2000) channel.createMessage('Message buffer too large! File:', { name: 'log.txt', file: flush })
-      else if (flush.length) channel.createMessage(flush.replace('>\r', '>'))
+      const flush = buffer.flush(2000)
+      /*
+      if (flush.length + buffer.length > 10000) {
+        const file = flush + buffer.flush(8000)
+        channel.createMessage(
+          'Message buffer too large! File:',
+          { name: `${new Date().toISOString()}.txt`, file }
+        )
+      } else */ if (flush.length) channel.createMessage(flush.replace(/>\r/g, '>'))
     }, 1000)
     channelLinksMap.push({ channel, ws, buffer, interval })
   })
