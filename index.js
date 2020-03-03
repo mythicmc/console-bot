@@ -22,7 +22,7 @@ class MessageBuffer {
 
   flush(length) {
     const r = this.buffer.substr(0, length)
-    this.buffer = this.buffer.substr(length - 1)
+    this.buffer = this.buffer.substr(length)
     return r
   }
 }
@@ -33,7 +33,7 @@ client.on('error', (err, id) => console.error(`Error: ${inspect(err, false, 0)}\
 
 client.on('ready', () => console.log('Connected to Discord!'))
 
-client.on('ready', async () => {
+client.once('ready', async () => {
   const guild = client.guilds.get(config.guild)
   if (!guild) {
     console.error('The specified guild does not exist! Shutting down the bot..')
