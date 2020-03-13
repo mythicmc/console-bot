@@ -81,7 +81,7 @@ client.once('ready', async () => {
       if (first) {
         first = false
         return
-      } else buffer.push(data)
+      } else buffer.push(data.replace('_', '\_').replace('*', '\*'))
     })
     const interval = setInterval(() => {
       const flush = buffer.flush(2000)
