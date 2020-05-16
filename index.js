@@ -1,4 +1,4 @@
-import Eris from 'eris'
+import * as Eris from 'eris'
 import WebSocket from 'ws'
 import fetch from 'node-fetch'
 import { inspect } from 'util'
@@ -6,7 +6,8 @@ import { readFileSync } from 'fs'
 
 const config = JSON.parse(readFileSync('./config.json', { encoding: 'utf8' }))
 
-const client = new Eris.Client(config.token, { restMode: true, autoreconnect: true })
+const intents = Eris.Constants.Intents.guildMessages | Eris.Constants.Intents.guilds
+const client = new Eris.Client(config.token, { restMode: true, autoreconnect: true, intents })
 
 client.connect()
 
@@ -83,16 +84,20 @@ client.once('ready', async () => {
         return
       } else buffer.push(data.replace('_', '\_').replace('*', '\*'))
     })
-    const interval = setInterval(() => {
+    const interval = setInterval(async () => {
       const flush = buffer.flush(2000)
+      try {
       /*
       if (flush.length + buffer.length > 10000) {
         const file = flush + buffer.flush(8000)
-        channel.createMessage(
+          await channel.createMessage(
           'Message buffer too large! File:',
           { name: `${new Date().toISOString()}.txt`, file }
         )
-      } else */ if (flush.length) channel.createMessage(flush.replace(/>\r/g, '>'))
+        } else */ if (flush.length) await channel.createMessage(flush.replace(/>\r/g, '>'))
+      } catch (e) {
+        console.error(e)
+      }
     }, 1000)
     channelLinksMap.push({ channel, ws, buffer, interval })
   })
