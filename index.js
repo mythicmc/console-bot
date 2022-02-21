@@ -34,6 +34,8 @@ client.on('error', (err, id) => console.error(`Error: ${inspect(err, false, 0)}\
 
 client.on('ready', () => console.log('Connected to Discord!'))
 
+let token = ''
+
 client.once('ready', async () => {
   const guild = client.guilds.get(config.guild)
   if (!guild) {
@@ -55,7 +57,6 @@ client.once('ready', async () => {
   }
 
   // Authenticate with octyne.
-  let token = ''
   try {
     const r = await (await fetch(`${config.ip}/login`, { headers: {
       Username: config.username,
@@ -104,8 +105,19 @@ client.once('ready', async () => {
   console.log('Initialized all connections to Octyne!')
 })
 
-client.on('messageCreate', message => {
+client.on('messageCreate', async message => {
   channelLinksMap.forEach((value) => {
-    if (value.channel.id === message.channel.id && !message.author.bot) value.ws.send(message.content)
+    if (value.channel.id !== message.channel.id || message.author.bot) return
+    else if (message.content === '!start' || message.content === '!stop') {
+      const body = message.content === '!start' ? 'START' : 'STOP'
+      const r = await (await fetch(`${config.ip}/server/${config.channels[message.channel.id]}`, {
+        body,
+        headers: {
+          Authorization: token
+        },
+        method: 'POST'
+      })).json()
+      if (r.error) message.channel.createMessage(`An error has occurred: \n${r.error}`)
+    } else value.ws.send(message.content)
   })
 })
