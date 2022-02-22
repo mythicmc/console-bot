@@ -73,7 +73,7 @@ client.once('ready', async () => {
   // Create WebSocket connections.
   channels.forEach(channel => {
     const ws = new WebSocket(
-      `${config.ip}/server/${config.channels[channel.id]}/console`,
+      `${config.ip.replace('http', 'ws').replace('https', 'wss')}/server/${config.channels[channel.id]}/console`,
       { headers: { Authorization: token } }
     )
     const buffer = new MessageBuffer()
@@ -83,7 +83,7 @@ client.once('ready', async () => {
       if (first) {
         first = false
         return
-      } else buffer.push(data.replace('_', '\_').replace('*', '\*'))
+      } else buffer.push(data.toString('utf8').replace('_', '\_').replace('*', '\*'))
     })
     const interval = setInterval(async () => {
       const flush = buffer.flush(2000)
@@ -105,19 +105,24 @@ client.once('ready', async () => {
   console.log('Initialized all connections to Octyne!')
 })
 
-client.on('messageCreate', async message => {
-  channelLinksMap.forEach((value) => {
+client.on('messageCreate', message => {
+  channelLinksMap.forEach(async (value) => {
     if (value.channel.id !== message.channel.id || message.author.bot) return
     else if (message.content === '!start' || message.content === '!stop') {
-      const body = message.content === '!start' ? 'START' : 'STOP'
-      const r = await (await fetch(`${config.ip}/server/${config.channels[message.channel.id]}`, {
-        body,
-        headers: {
-          Authorization: token
-        },
-        method: 'POST'
-      })).json()
-      if (r.error) message.channel.createMessage(`An error has occurred: \n${r.error}`)
+      try {
+        const body = message.content === '!start' ? 'START' : 'STOP'
+        const r = await (await fetch(`${config.ip}/server/${config.channels[message.channel.id]}`, {
+          body,
+          headers: {
+            Authorization: token
+          },
+          method: 'POST'
+        })).json()
+        if (r.error) message.channel.createMessage(`An error has occurred: \n${r.error}`)
+      } catch (err) {
+        message.channel.createMessage('An error has occurred. Check console for details.')
+        console.error(err)
+      }
     } else value.ws.send(message.content)
   })
 })
