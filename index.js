@@ -107,7 +107,7 @@ client.once('ready', async () => {
 client.on('messageCreate', message => {
   channelLinksMap.forEach(async (value) => {
     if (value.channel.id !== message.channel.id || message.author.bot) return
-    else if (message.content === '!start' || message.content === '!stop') {
+    else if (message.content === '!start' || message.content === '!kill') {
       try {
         const body = message.content === '!start' ? 'START' : 'STOP'
         const r = await (await fetch(`${config.ip}/server/${config.channels[message.channel.id]}`, {
