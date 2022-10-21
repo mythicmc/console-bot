@@ -1,10 +1,9 @@
 import * as Eris from 'eris'
 import WebSocket from 'ws'
-import fetch from 'node-fetch'
-import { inspect } from 'util'
-import { readFileSync } from 'fs'
+import { fetch } from 'undici'
+import { inspect } from 'node:util'
 
-const config = JSON.parse(readFileSync('./config.json', { encoding: 'utf8' }))
+import config from './config.json' assert { type: 'json' };
 
 const intents = Eris.Constants.Intents.guildMessages | Eris.Constants.Intents.guilds
 const client = new Eris.Client(config.token, { restMode: true, autoreconnect: true, intents })
