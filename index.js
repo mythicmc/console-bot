@@ -3,7 +3,7 @@ import WebSocket from 'ws'
 import { fetch } from 'undici'
 import { inspect } from 'node:util'
 
-import config from './config.json' assert { type: 'json' };
+import config from './config.json' with { type: 'json' };
 
 const intents = Eris.Constants.Intents.guildMessages | Eris.Constants.Intents.guilds
 const client = new Eris.Client(config.token, { restMode: true, autoreconnect: true, intents })
